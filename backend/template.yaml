@@ -1,0 +1,183 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SynthSpecies - Synthetic Image Generator for Rare Species
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 60
+    MemorySize: 512
+    Environment:
+      Variables:
+        UPLOADS_BUCKET: !Ref UploadsBucket
+        GENERATED_BUCKET: !Ref GeneratedBucket
+        BEDROCK_REGION: us-east-1
+        PRESIGNED_URL_EXPIRY_SECONDS: "3600"
+
+Parameters:
+  CorsOrigin:
+    Type: String
+    Default: "*"
+    Description: Allowed CORS origin (set to CloudFront domain in production)
+
+Resources:
+  SynthSpeciesApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: prod
+      CorsConfiguration:
+        AllowOrigins:
+          - !Ref CorsOrigin
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - Content-Type
+          - Authorization
+        MaxAge: 3000
+
+  UploadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.lambda_handler
+      CodeUri: functions/upload/
+      Events:
+        Upload:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SynthSpeciesApi
+            Path: /upload
+            Method: POST
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref UploadsBucket
+
+  GenerateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.lambda_handler
+      CodeUri: functions/generate/
+      Timeout: 60
+      MemorySize: 512
+      Events:
+        Generate:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SynthSpeciesApi
+            Path: /generate
+            Method: POST
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref UploadsBucket
+        - S3CrudPolicy:
+            BucketName: !Ref GeneratedBucket
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource:
+                - arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-canvas-v1:0
+                - arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-image-generator-v1
+                - arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-image-generator-v2:0
+                - arn:aws:bedrock:us-east-1::foundation-model/stability.stable-diffusion-xl-v1
+
+  BulkGenerateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.lambda_handler
+      CodeUri: functions/bulk_generate/
+      Timeout: 300
+      MemorySize: 1024
+      Events:
+        BulkGenerate:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SynthSpeciesApi
+            Path: /bulk-generate
+            Method: POST
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref UploadsBucket
+        - S3CrudPolicy:
+            BucketName: !Ref GeneratedBucket
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource:
+                - arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-canvas-v1:0
+                - arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-image-generator-v1
+                - arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-image-generator-v2:0
+                - arn:aws:bedrock:us-east-1::foundation-model/stability.stable-diffusion-xl-v1
+
+  ListImagesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.lambda_handler
+      CodeUri: functions/list_images/
+      Events:
+        ListImages:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SynthSpeciesApi
+            Path: /images/{jobId}
+            Method: GET
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref GeneratedBucket
+
+  DownloadZipFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.lambda_handler
+      CodeUri: functions/download_zip/
+      Timeout: 120
+      MemorySize: 2048
+      EphemeralStorage:
+        Size: 2048
+      Events:
+        Download:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SynthSpeciesApi
+            Path: /download/{jobId}
+            Method: GET
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref GeneratedBucket
+
+  UploadsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteAfter24Hours
+            Status: Enabled
+            ExpirationInDays: 1
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ["*"]
+            AllowedMethods: [PUT, GET]
+            AllowedOrigins: [!Ref CorsOrigin]
+            MaxAge: 3000
+
+  GeneratedBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteAfter7Days
+            Status: Enabled
+            ExpirationInDays: 7
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${SynthSpeciesApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  UploadsBucketName:
+    Description: S3 bucket for reference image uploads
+    Value: !Ref UploadsBucket
+  GeneratedBucketName:
+    Description: S3 bucket for generated images
+    Value: !Ref GeneratedBucket
