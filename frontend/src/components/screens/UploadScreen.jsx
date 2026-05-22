@@ -15,8 +15,8 @@ export default function UploadScreen() {
         (f) => f.type === 'image/jpeg' || f.type === 'image/png'
       )
       const total = referenceImages.length + valid.length
-      if (total > 30) {
-        setError('Maximum 30 images allowed')
+      if (total > 10) {
+        setError('Maximum 10 images allowed')
         return
       }
       const newImages = valid.map((f) => ({
@@ -65,7 +65,7 @@ export default function UploadScreen() {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-gray-900">Upload Reference Images</h2>
-        <p className="text-gray-600 mt-1">Upload 5–30 reference images of your species (JPG/PNG)</p>
+        <p className="text-gray-600 mt-1">Upload 1–10 reference images of your species (JPG/PNG)</p>
       </div>
 
       <div>
@@ -103,7 +103,7 @@ export default function UploadScreen() {
       {referenceImages.length > 0 && (
         <div>
           <p className="text-sm font-medium text-gray-700 mb-3">
-            {referenceImages.length} / 30 images
+            {referenceImages.length} / 10 images
           </p>
           <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
             {referenceImages.map((img) => (
@@ -129,7 +129,7 @@ export default function UploadScreen() {
 
       <button
         onClick={handleUploadAndNext}
-        disabled={referenceImages.length < 5 || uploading || !speciesName.trim()}
+        disabled={referenceImages.length < 1 || uploading || !speciesName.trim()}
         className="px-6 py-3 bg-primary-600 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary-700 transition-colors"
       >
         {uploading ? 'Uploading...' : 'Next: Configure'}

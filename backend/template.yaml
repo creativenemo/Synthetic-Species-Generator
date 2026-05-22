@@ -58,7 +58,7 @@ Resources:
     Properties:
       Handler: handler.lambda_handler
       CodeUri: functions/generate/
-      Timeout: 60
+      Timeout: 120
       MemorySize: 512
       Events:
         Generate:
@@ -89,6 +89,10 @@ Resources:
                 - arn:aws:bedrock:us-east-1::foundation-model/stability.stable-image-control-sketch-v1:0
                 - arn:aws:bedrock:*:*:foundation-model/stability*
                 - arn:aws:bedrock:*:*:inference-profile/us.stability*
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:synthspecies-*"
 
   BulkGenerateFunction:
     Type: AWS::Serverless::Function

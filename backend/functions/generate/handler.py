@@ -7,13 +7,18 @@ import boto3
 from bedrock_client import invoke_model, extract_images
 
 s3 = boto3.client("s3")
+lambda_client = boto3.client("lambda")
 UPLOADS_BUCKET = os.environ["UPLOADS_BUCKET"]
 GENERATED_BUCKET = os.environ["GENERATED_BUCKET"]
 BEDROCK_REGION = os.environ.get("BEDROCK_REGION", "us-east-1")
 EXPIRY = int(os.environ.get("PRESIGNED_URL_EXPIRY_SECONDS", "3600"))
+FUNCTION_NAME = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "")
 
 
 def lambda_handler(event, context):
+    if event.get("_internal"):
+        return _do_generate(event["_internal"])
+
     body = json.loads(event.get("body", "{}"))
     session_id = body.get("sessionId")
     job_id = body.get("jobId") or f"preview-{uuid.uuid4().hex[:8]}"
@@ -25,31 +30,45 @@ def lambda_handler(event, context):
     if not session_id or not model:
         return _response(400, {"error": "sessionId and model required"})
 
+    # Otherwise, invoke self async and return immediately
+    for i in range(count):
+        payload = {
+            "_internal": {
+                "jobId": job_id,
+                "model": model,
+                "referenceKeys": reference_keys,
+                "params": params,
+                "imageIndex": i + 1,
+                "refIndex": i,
+            }
+        }
+        lambda_client.invoke(
+            FunctionName=FUNCTION_NAME,
+            InvocationType="Event",
+            Payload=json.dumps(payload),
+        )
+
+    return _response(202, {"jobId": job_id, "total": count, "status": "generating"})
+
+
+def _do_generate(config):
+    job_id = config["jobId"]
+    model = config["model"]
+    reference_keys = config["referenceKeys"]
+    params = config["params"]
+    image_index = config["imageIndex"]
+    ref_index = config["refIndex"]
+
     reference_images = _fetch_references(reference_keys)
+    ref_for_call = [reference_images[ref_index % len(reference_images)]] if reference_images else []
 
     bedrock = boto3.client("bedrock-runtime", region_name=BEDROCK_REGION)
-    result_images = []
-    remaining = count
+    response_body = invoke_model(bedrock, model, params, ref_for_call, 1)
+    images = extract_images(model, response_body)
 
-    while remaining > 0:
-        batch_size = min(remaining, 1 if model.startswith("us.stability.") else 5)
-        response_body = invoke_model(
-            bedrock, model, params, reference_images, batch_size
-        )
-        images = extract_images(model, response_body)
-        result_images.extend(images)
-        remaining -= len(images)
-
-    output = []
-    for i, img_bytes in enumerate(result_images[:count], 1):
-        key = f"generated/{job_id}/preview/img_{i:03d}.png"
-        s3.put_object(Bucket=GENERATED_BUCKET, Key=key, Body=img_bytes, ContentType="image/png")
-        url = s3.generate_presigned_url(
-            "get_object", Params={"Bucket": GENERATED_BUCKET, "Key": key}, ExpiresIn=EXPIRY
-        )
-        output.append({"key": key, "url": url})
-
-    return _response(200, {"jobId": job_id, "images": output})
+    if images:
+        key = f"generated/{job_id}/preview/img_{image_index:03d}.png"
+        s3.put_object(Bucket=GENERATED_BUCKET, Key=key, Body=images[0], ContentType="image/png")
 
 
 def _fetch_references(keys):

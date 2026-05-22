@@ -12,7 +12,8 @@ def lambda_handler(event, context):
     if not job_id:
         return _response(400, {"error": "jobId required"})
 
-    prefix = f"generated/{job_id}/bulk/"
+    subfolder = "preview" if job_id.startswith("preview") else "bulk"
+    prefix = f"generated/{job_id}/{subfolder}/"
     response = s3.list_objects_v2(Bucket=GENERATED_BUCKET, Prefix=prefix)
     objects = response.get("Contents", [])
 
@@ -25,8 +26,7 @@ def lambda_handler(event, context):
             )
             images.append({"key": key, "url": url})
 
-    total_marker_prefix = f"generated/{job_id}/"
-    total = 200
+    total = 4 if job_id.startswith("preview") else 200
 
     return _response(200, {
         "jobId": job_id,

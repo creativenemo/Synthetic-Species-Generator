@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAppStore } from '../../store/appStore'
-import { generatePreview } from '../../api/generate'
+import { generatePreview, listImages } from '../../api/generate'
 
 const COST_PER_IMAGE = {
   'us.stability.stable-image-style-guide-v1:0': { standard: 0.04 },
@@ -24,17 +24,37 @@ export default function PreviewScreen() {
     try {
       const state = useAppStore.getState()
       const refKeys = state.referenceImages.map((i) => i.s3Key).filter(Boolean)
-      const result = await generatePreview({
+      const model = state.selectedModel
+      const p = state.modelParams[model]
+
+      const { jobId } = await generatePreview({
         sessionId: state.sessionId,
-        model: state.selectedModel,
+        model,
         referenceS3Keys: refKeys,
-        params: state.modelParams[state.selectedModel],
+        params: p,
         count: 4,
       })
-      setPreviewImages(result.jobId, result.images)
+
+      const poll = setInterval(async () => {
+        try {
+          const status = await listImages(jobId)
+          if (status.completed >= 4) {
+            clearInterval(poll)
+            setPreviewImages(jobId, status.images)
+            setLoading(false)
+          }
+        } catch {}
+      }, 2000)
+
+      setTimeout(() => {
+        clearInterval(poll)
+        if (loading) {
+          setLoading(false)
+          setError('Generation timed out — try again')
+        }
+      }, 120000)
     } catch (err) {
       setError(err.message)
-    } finally {
       setLoading(false)
     }
   }
