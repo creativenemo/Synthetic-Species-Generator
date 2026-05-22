@@ -3,50 +3,24 @@ import { create } from 'zustand'
 const generateSessionId = () => crypto.randomUUID()
 
 const DEFAULT_MODEL_PARAMS = {
-  'amazon.nova-canvas-v1:0': {
-    taskType: 'IMAGE_VARIATION',
-    similarityStrength: 0.7,
-    quality: 'standard',
-    width: 1024,
-    height: 1024,
-    cfgScale: 6.5,
+  'us.stability.stable-image-style-guide-v1:0': {
+    fidelity: 0.7,
+    aspectRatio: '1:1',
     seed: 0,
     text: '',
     negativeText: '',
   },
-  'amazon.titan-image-generator-v2:0': {
-    taskType: 'IMAGE_VARIATION',
-    similarityStrength: 0.7,
-    quality: 'standard',
-    width: 1024,
-    height: 1024,
-    cfgScale: 7.0,
+  'us.stability.stable-image-control-structure-v1:0': {
+    controlStrength: 0.7,
+    aspectRatio: '1:1',
     seed: 0,
     text: '',
     negativeText: '',
   },
-  'amazon.titan-image-generator-v1': {
-    taskType: 'IMAGE_VARIATION',
-    similarityStrength: 0.7,
-    quality: 'standard',
-    width: 1024,
-    height: 1024,
-    cfgScale: 7.0,
+  'us.stability.stable-image-control-sketch-v1:0': {
+    controlStrength: 0.7,
+    aspectRatio: '1:1',
     seed: 0,
-    text: '',
-    negativeText: '',
-  },
-  'stability.stable-diffusion-xl-v1': {
-    mode: 'IMAGE_TO_IMAGE',
-    imageStrength: 0.35,
-    cfgScale: 7,
-    steps: 30,
-    seed: 0,
-    stylePreset: 'photographic',
-    sampler: 'K_EULER_ANCESTRAL',
-    width: 1024,
-    height: 1024,
-    promptWeight: 1.0,
     text: '',
     negativeText: '',
   },
@@ -57,7 +31,7 @@ export const useAppStore = create((set, get) => ({
   speciesName: '',
   referenceImages: [],
 
-  selectedModel: 'amazon.nova-canvas-v1:0',
+  selectedModel: 'us.stability.stable-image-style-guide-v1:0',
   modelParams: { ...DEFAULT_MODEL_PARAMS },
 
   previewJobId: null,

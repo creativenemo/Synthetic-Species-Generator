@@ -1,16 +1,14 @@
 import { useAppStore } from '../../store/appStore'
 import ModelSelector from '../shared/ModelSelector'
 import PromptEditor from '../shared/PromptEditor'
-import NovaCanvasSettings from '../models/NovaCanvasSettings'
-import TitanV2Settings from '../models/TitanV2Settings'
-import TitanV1Settings from '../models/TitanV1Settings'
-import SDXLSettings from '../models/SDXLSettings'
+import StyleGuideSettings from '../models/StyleGuideSettings'
+import ControlStructureSettings from '../models/ControlStructureSettings'
+import ControlSketchSettings from '../models/ControlSketchSettings'
 
 const MODEL_SETTINGS = {
-  'amazon.nova-canvas-v1:0': NovaCanvasSettings,
-  'amazon.titan-image-generator-v2:0': TitanV2Settings,
-  'amazon.titan-image-generator-v1': TitanV1Settings,
-  'stability.stable-diffusion-xl-v1': SDXLSettings,
+  'us.stability.stable-image-style-guide-v1:0': StyleGuideSettings,
+  'us.stability.stable-image-control-structure-v1:0': ControlStructureSettings,
+  'us.stability.stable-image-control-sketch-v1:0': ControlSketchSettings,
 }
 
 export default function SettingsScreen() {
@@ -31,7 +29,7 @@ export default function SettingsScreen() {
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="font-medium text-gray-900 mb-4">Model Parameters</h3>
-          <SettingsPanel />
+          {SettingsPanel && <SettingsPanel />}
         </div>
       </div>
 

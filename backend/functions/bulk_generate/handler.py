@@ -1,12 +1,10 @@
 import json
 import os
-import sys
 import random
 import base64
 import time
 import boto3
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "generate"))
 from bedrock_client import invoke_model, extract_images
 
 s3 = boto3.client("s3")
@@ -72,11 +70,7 @@ def _fetch_references(keys):
 def _sample_references(all_refs, model):
     if not all_refs:
         return []
-    if model == "stability.stable-diffusion-xl-v1":
-        return [random.choice(all_refs)]
-    max_refs = 5 if model == "amazon.nova-canvas-v1:0" else 2
-    count = min(len(all_refs), max_refs)
-    return random.sample(all_refs, count)
+    return [random.choice(all_refs)]
 
 
 def _response(status_code, body):

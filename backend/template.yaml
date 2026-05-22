@@ -81,6 +81,14 @@ Resources:
                 - arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-image-generator-v1
                 - arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-image-generator-v2:0
                 - arn:aws:bedrock:us-east-1::foundation-model/stability.stable-diffusion-xl-v1
+                - arn:aws:bedrock:us-east-1:996561439262:inference-profile/us.stability.stable-image-style-guide-v1:0
+                - arn:aws:bedrock:us-east-1:996561439262:inference-profile/us.stability.stable-image-control-structure-v1:0
+                - arn:aws:bedrock:us-east-1:996561439262:inference-profile/us.stability.stable-image-control-sketch-v1:0
+                - arn:aws:bedrock:us-east-1::foundation-model/stability.stable-image-style-guide-v1:0
+                - arn:aws:bedrock:us-east-1::foundation-model/stability.stable-image-control-structure-v1:0
+                - arn:aws:bedrock:us-east-1::foundation-model/stability.stable-image-control-sketch-v1:0
+                - arn:aws:bedrock:*:*:foundation-model/stability*
+                - arn:aws:bedrock:*:*:inference-profile/us.stability*
 
   BulkGenerateFunction:
     Type: AWS::Serverless::Function
@@ -110,6 +118,14 @@ Resources:
                 - arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-image-generator-v1
                 - arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-image-generator-v2:0
                 - arn:aws:bedrock:us-east-1::foundation-model/stability.stable-diffusion-xl-v1
+                - arn:aws:bedrock:us-east-1:996561439262:inference-profile/us.stability.stable-image-style-guide-v1:0
+                - arn:aws:bedrock:us-east-1:996561439262:inference-profile/us.stability.stable-image-control-structure-v1:0
+                - arn:aws:bedrock:us-east-1:996561439262:inference-profile/us.stability.stable-image-control-sketch-v1:0
+                - arn:aws:bedrock:us-east-1::foundation-model/stability.stable-image-style-guide-v1:0
+                - arn:aws:bedrock:us-east-1::foundation-model/stability.stable-image-control-structure-v1:0
+                - arn:aws:bedrock:us-east-1::foundation-model/stability.stable-image-control-sketch-v1:0
+                - arn:aws:bedrock:*:*:foundation-model/stability*
+                - arn:aws:bedrock:*:*:inference-profile/us.stability*
 
   ListImagesFunction:
     Type: AWS::Serverless::Function

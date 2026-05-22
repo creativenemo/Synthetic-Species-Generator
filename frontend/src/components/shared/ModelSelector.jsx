@@ -1,10 +1,9 @@
 import { useAppStore } from '../../store/appStore'
 
 const MODELS = [
-  { id: 'amazon.nova-canvas-v1:0', name: 'Nova Canvas', desc: 'Best quality for reference-guided synthesis' },
-  { id: 'amazon.titan-image-generator-v2:0', name: 'Titan v2', desc: 'Subject composition into new scenes' },
-  { id: 'amazon.titan-image-generator-v1', name: 'Titan v1', desc: 'Cheapest baseline option' },
-  { id: 'stability.stable-diffusion-xl-v1', name: 'SDXL', desc: 'Highest detail, most control' },
+  { id: 'us.stability.stable-image-style-guide-v1:0', name: 'Style Guide', desc: 'Reference-guided generation — best for species synthesis' },
+  { id: 'us.stability.stable-image-control-structure-v1:0', name: 'Control Structure', desc: 'Preserves structural composition from reference' },
+  { id: 'us.stability.stable-image-control-sketch-v1:0', name: 'Control Sketch', desc: 'Generates from sketch/outline of reference' },
 ]
 
 export default function ModelSelector() {
@@ -13,7 +12,7 @@ export default function ModelSelector() {
   return (
     <div className="space-y-3">
       <h3 className="font-medium text-gray-900">Select Model</h3>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {MODELS.map((m) => (
           <button
             key={m.id}

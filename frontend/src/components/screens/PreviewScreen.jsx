@@ -3,10 +3,9 @@ import { useAppStore } from '../../store/appStore'
 import { generatePreview } from '../../api/generate'
 
 const COST_PER_IMAGE = {
-  'amazon.nova-canvas-v1:0': { standard: 0.006, premium: 0.012 },
-  'amazon.titan-image-generator-v2:0': { standard: 0.008, premium: 0.012 },
-  'amazon.titan-image-generator-v1': { standard: 0.008, premium: 0.008 },
-  'stability.stable-diffusion-xl-v1': { standard: 0.04, premium: 0.04 },
+  'us.stability.stable-image-style-guide-v1:0': { standard: 0.04 },
+  'us.stability.stable-image-control-structure-v1:0': { standard: 0.04 },
+  'us.stability.stable-image-control-sketch-v1:0': { standard: 0.04 },
 }
 
 export default function PreviewScreen() {

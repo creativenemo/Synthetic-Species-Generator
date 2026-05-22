@@ -32,12 +32,13 @@ def lambda_handler(event, context):
     remaining = count
 
     while remaining > 0:
-        batch_size = min(remaining, 5)
+        batch_size = min(remaining, 1 if model.startswith("us.stability.") else 5)
         response_body = invoke_model(
             bedrock, model, params, reference_images, batch_size
         )
-        result_images.extend(extract_images(model, response_body))
-        remaining -= batch_size
+        images = extract_images(model, response_body)
+        result_images.extend(images)
+        remaining -= len(images)
 
     output = []
     for i, img_bytes in enumerate(result_images[:count], 1):
